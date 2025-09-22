@@ -36,5 +36,4 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
                 qs = qs.filter(is_staff=False, is_superuser=False)
             else:
                 qs = qs.filter(is_superuser=False)
-                #qs = qs.all()
-        return qs
+        return qs.filter(is_superuser=False)
