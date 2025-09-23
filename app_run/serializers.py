@@ -10,7 +10,7 @@ class AthleteSerializer(serializers.ModelSerializer):
 
 
 class RunSerializer(serializers.ModelSerializer):
-    athlete = AthleteSerializer(read_only=True)
+    athlete_data = AthleteSerializer(read_only=True, source='athlete')
     class Meta:
         model = Run
         fields = '__all__'
