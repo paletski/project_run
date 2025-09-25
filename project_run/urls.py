@@ -25,9 +25,17 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('api/runs', views.RunViewSet)
 router.register('api/users', views.UserViewSet)
+#router.register('api/runs/<int:run_id>/start', views.RunStartViewSet,
+# basename='run-start')
+#router.register('api/runs/<int:run_id>/stop', views.RunStopViewSet,
+# basename='run-stop')
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/company_details/', views.company_description_view),
     path('', include(router.urls)),
+    path('api/runs/<int:run_id>/start', views.RunStartViewSet.as_view()),
+    path('api/runs/<int:run_id>/stop', views.RunStopViewSet.as_view()),
 ]
