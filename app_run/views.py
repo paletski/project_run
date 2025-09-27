@@ -12,7 +12,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 
@@ -48,38 +48,27 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RunStartViewSet(APIView):
     def post(self, request, run_id):
-        qs = Run.objects.filter(id=run_id)
-        #print(qs)
-        if not qs.exists():
-            data = {'message': f'POST запрос не обработан 1'}
-            return Response(data, status=status.HTTP_404_NOT_FOUND)
-        if qs.exists():
-            if qs[0].status in ['in_progress','finished']:
-                data = {'message': f'POST запрос не обработан 2'}
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            if qs[0].status == 'init':
-                qs.update(status='in_progress')
-                data = {'message': f'POST запрос обработан 3'}
-                return Response(data, status=status.HTTP_200_OK)
-        data = {'message': f'POST запрос не обработан, получено странное '
-                           f'значение статуса {qs[0].status}'}
-        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        run = get_object_or_404(Run, id=run_id)
+        #print(f'view start {run}')
+        if run.status == 'init':
+            run.status = 'in_progress'
+            run.save()
+            data = {'message': f'POST запрос обработан 3'}
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            data = {'message': f'POST запрос не обработан 2'}
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RunStopViewSet(APIView):
     def post(self, request, run_id):
-        qs = Run.objects.filter(id=run_id)
-        if not qs.exists():
-            data = {'message': f'POST запрос не обработан 21'}
-            return Response(data, status=status.HTTP_404_NOT_FOUND)
-        if qs.exists():
-            if qs[0].status in ['init','finished']:
-                data = {'message': f'POST запрос не обработан 22'}
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
-            if qs[0].status == 'in_progress':
-                qs.update(status='finished')
-                data = {'message': f'POST запрос обработан 23'}
-                return Response(data, status=status.HTTP_200_OK)
-        data = {'message': f'POST запрос не обработан, получено странное '
-                           f'значение статуса {qs[0].status}'}
-        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        run = get_object_or_404(Run, id=run_id)
+        #print(f'view stop {run}')
+        if run.status == 'in_progress':
+            run.status = 'finished'
+            run.save()
+            data = {'message': f'POST запрос обработан 32'}
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            data = {'message': f'POST запрос не обработан 22'}
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
