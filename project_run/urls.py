@@ -25,11 +25,6 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('api/runs', views.RunViewSet)
 router.register('api/users', views.UserViewSet)
-#router.register('api/runs/<int:run_id>/start', views.RunStartViewSet,
-# basename='run-start')
-#router.register('api/runs/<int:run_id>/stop', views.RunStopViewSet,
-# basename='run-stop')
-
 
 
 urlpatterns = [
