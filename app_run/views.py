@@ -49,6 +49,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class RunStartViewSet(APIView):
     def post(self, request, run_id):
         qs = Run.objects.filter(id=run_id)
+        #print(qs)
         if not qs.exists():
             data = {'message': f'POST запрос не обработан 1'}
             return Response(data, status=status.HTTP_404_NOT_FOUND)

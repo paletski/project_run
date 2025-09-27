@@ -13,3 +13,6 @@ class Run(models.Model):
     comment = models.TextField()
     athlete = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.CharField(choices=STATUS_CHOICES,default='init')
+
+    def __str__(self):
+        return f"id = {self.id} created_at = {self.created_at} comment = {self.comment} "
