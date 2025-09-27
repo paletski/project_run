@@ -31,6 +31,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/company_details/', views.company_description_view),
     path('', include(router.urls)),
-    path('api/runs/<int:run_id>/start', views.RunStartViewSet.as_view()),
-    path('api/runs/<int:run_id>/stop', views.RunStopViewSet.as_view()),
+    path('api/runs/<int:run_id>/start/', views.RunStartViewSet.as_view()),
+    path('api/runs/<int:run_id>/stop/', views.RunStopViewSet.as_view()),
 ]
