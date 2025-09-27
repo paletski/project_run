@@ -1,6 +1,4 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from rest_framework import viewsets
 
 from django.conf import settings
@@ -13,6 +11,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+
 
 # Create your views here.
 
@@ -23,15 +25,29 @@ def company_description_view(request):
                     'contacts': settings.CONTACTS}
                     )
 
+class RunPagination(PageNumberPagination):
+    page_size_query_param = 'size'
+
+
 class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
+    pagination_class = RunPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['status', 'athlete'] # фильтруем
+    ordering_fields = ['created_at']         # сортируем
+
+class UserPagination(PageNumberPagination):
+    page_size_query_param = 'size'
+
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = [SearchFilter]
+    pagination_class = RunPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     search_fields = ['first_name', 'last_name',]
+    ordering_fields = ['date_joined']
 
     def get_queryset(self):
         qs = self.queryset

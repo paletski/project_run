@@ -40,6 +40,8 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
+    'django_filters',
+
     'app_run',
 ]
 
