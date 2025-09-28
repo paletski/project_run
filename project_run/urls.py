@@ -33,4 +33,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/runs/<int:run_id>/start/', views.RunStartViewSet.as_view()),
     path('api/runs/<int:run_id>/stop/', views.RunStopViewSet.as_view()),
+    path('api/athlete_info/<int:user_id>/', views.AthleteInfoViewSet.as_view()),
 ]

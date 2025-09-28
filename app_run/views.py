@@ -3,7 +3,7 @@ from rest_framework import viewsets
 
 from django.conf import settings
 
-from .models import Run
+from .models import Run, AthleteInfo
 from .serializers import RunSerializer, UserSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
@@ -89,3 +89,43 @@ class RunStopViewSet(APIView):
         else:
             data = {'message': f'POST запрос не обработан 22'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AthleteInfoViewSet(APIView):
+    def get(self, request, user_id):
+        #True создан, False найден
+        if not User.objects.filter(id=user_id).exists():
+            message = {'message': 'пользователь не найден'}
+            return Response(message, status=status.HTTP_404_NOT_FOUND)
+        goals = request.GET.get('goals', '')
+        weight = int(request.GET.get('weight', -1))
+        if weight and (weight < 0 or weight > 899):
+            message = {'message': 'вес не в диапазоне 1-899'}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+        defaults = {'weight': weight, 'goals': goals}
+        athlete, created = AthleteInfo.objects.get_or_create(
+            user_id_id=user_id,defaults=defaults)
+        print(created)
+        if created:
+            return Response({'message': 'создана'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'найдена'}, status=status.HTTP_200_OK)
+
+
+    def put(self, request, user_id):
+        # True создан,  False обновлен
+        goals = request.GET.get('goals', '')
+        weight = int(request.GET.get('weight', -1))
+        if weight and (weight < 0 or weight > 899):
+            message = {'message': 'вес не в диапазоне 1-899'}
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        athlete, created = AthleteInfo.objects.update_or_create(
+         user_id_id=user_id,
+         defaults={
+            'weight': weight,
+            'goals': goals})
+        if created:
+            return Response({'message': 'создана'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message': 'обновлена'}, status=status.HTTP_201_CREATED)

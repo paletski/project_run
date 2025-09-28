@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core import validators
 
 
 # Create your models here.
@@ -16,3 +17,11 @@ class Run(models.Model):
 
     def __str__(self):
         return f"id = {self.id} created_at = {self.created_at} comment = {self.comment} "
+
+
+class AthleteInfo(models.Model):
+    weight = models.IntegerField(validators=[validators.MinValueValidator(
+        1), validators.MaxValueValidator(899)])
+
+    goals = models.TextField()
+    user_id = models.OneToOneField(User, on_delete=models.CASCADE, related_name='athlete_info')
