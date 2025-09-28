@@ -51,6 +51,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = self.queryset
+        runs_finished = self.request.query_params.get('runs_finished', None)
         type = self.request.query_params.get('type', None)
         if type:
             if type == 'coach':
