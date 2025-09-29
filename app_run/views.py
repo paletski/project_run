@@ -97,27 +97,26 @@ class AthleteInfoViewSet(APIView):
         if not User.objects.filter(id=user_id).exists():
             message = {'message': 'пользователь не найден'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
-        goals = request.GET.get('goals', '')
-        weight = int(request.GET.get('weight', -1))
-        if weight and (weight < 0 or weight > 899):
-            message = {'message': 'вес не в диапазоне 1-899'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
-        defaults = {'weight': weight, 'goals': goals}
-        athlete, created = AthleteInfo.objects.get_or_create(
-            user_id_id=user_id,defaults=defaults)
-        print(created)
+        # юзер есть в User
+        # значит достаем данные по нему из AthleteInfo или создаем запись в AthleteInfo
+        athlete, created = AthleteInfo.objects.get_or_create(user_id_id=user_id)
+        res_data = {
+            'weight': athlete.weight,
+            'goals': athlete.goals,
+            'user_id': athlete.user_id_id,
+        }
         if created:
-            return Response({'message': 'создана'}, status=status.HTTP_201_CREATED)
+            return Response(res_data, status=status.HTTP_201_CREATED)
         else:
-            return Response({'message': 'найдена'}, status=status.HTTP_200_OK)
+            return Response(res_data, status=status.HTTP_200_OK)
 
 
     def put(self, request, user_id):
         # True создан,  False обновлен
         goals = request.GET.get('goals', '')
         weight = int(request.GET.get('weight', -1))
-        if weight and (weight < 0 or weight > 899):
+        print (f'weight = {weight}')
+        if not weight or weight < 0 or weight > 899:
             message = {'message': 'вес не в диапазоне 1-899'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         athlete, created = AthleteInfo.objects.update_or_create(
@@ -125,7 +124,9 @@ class AthleteInfoViewSet(APIView):
          defaults={
             'weight': weight,
             'goals': goals})
-        if created:
-            return Response({'message': 'создана'}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'message': 'обновлена'}, status=status.HTTP_201_CREATED)
+        res_data = {
+            'weight': athlete.weight,
+            'goals': athlete.goals,
+            'user_id': athlete.user_id_id,
+        }
+        return Response(res_data, status=status.HTTP_201_CREATED)

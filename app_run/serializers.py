@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run
+from .models import Run, AthleteInfo
 from django.contrib.auth.models import User
 
 
@@ -34,5 +34,3 @@ class UserSerializer(serializers.ModelSerializer):
     def get_runs_finished(self, obj):
          return  obj.runs.filter(status='finished').count() # получить по
          # обратной связи количество завершенных забегов атлета
-
-
