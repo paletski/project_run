@@ -106,7 +106,9 @@ class AthleteInfoViewSet(APIView):
             'user_id': athlete.user_id_id,
         }
         if created:
-            return Response(res_data, status=status.HTTP_201_CREATED) # создан
+            #return Response(res_data, status=status.HTTP_201_CREATED) # создан
+            # не понимаю что надо по ТЗ, будем так же пихать в ответ 200
+            return Response(res_data, status=status.HTTP_200_OK)  # создан
         else:
             return Response(res_data, status=status.HTTP_200_OK) # найдено
 
