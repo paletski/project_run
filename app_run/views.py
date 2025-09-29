@@ -106,9 +106,9 @@ class AthleteInfoViewSet(APIView):
             'user_id': athlete.user_id_id,
         }
         if created:
-            return Response(res_data, status=status.HTTP_201_CREATED)
+            return Response(res_data, status=status.HTTP_201_CREATED) # создан
         else:
-            return Response(res_data, status=status.HTTP_200_OK)
+            return Response(res_data, status=status.HTTP_200_OK) # найдено
 
 
     def put(self, request, user_id):
@@ -117,7 +117,7 @@ class AthleteInfoViewSet(APIView):
         weight = int(request.GET.get('weight', -1))
         print (f'weight = {weight}')
         if not weight or weight < 0 or weight > 899:
-            message = {'message': 'вес не в диапазоне 1-899'}
+            message = {'msg': 'вес не в диапазоне 1-899'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         athlete, created = AthleteInfo.objects.update_or_create(
          user_id_id=user_id,
