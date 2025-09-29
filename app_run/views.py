@@ -130,3 +130,4 @@ class AthleteInfoViewSet(APIView):
             'user_id': athlete.user_id_id,
         }
         return Response(res_data, status=status.HTTP_201_CREATED)
+
