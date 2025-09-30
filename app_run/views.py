@@ -119,7 +119,7 @@ class AthleteInfoViewSet(APIView):
             message = {'message': 'пользователь не найден'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
 
-        goals = request.GET.get('goals') # может быть пусто
+        goals = request.GET.get('goals', '') # может быть пусто
         weight_str = request.GET.get('weight') # может быть пусто
         print (f'weight_str = {weight_str}')
 
