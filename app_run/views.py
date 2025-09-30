@@ -115,12 +115,21 @@ class AthleteInfoViewSet(APIView):
 
     def put(self, request, user_id):
         # True создан,  False обновлен
-        goals = request.GET.get('goals', '')
-        weight = int(request.GET.get('weight', -1))
-        print (f'weight = {weight}')
-        if not weight or weight < 0 or weight > 899:
-            message = {'msg': 'вес не в диапазоне 1-899'}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        if not User.objects.filter(id=user_id).exists():
+            message = {'message': 'пользователь не найден'}
+            return Response(message, status=status.HTTP_404_NOT_FOUND)
+
+        goals = request.GET.get('goals') # может быть пусто
+        weight_str = request.GET.get('weight') # может быть пусто
+        print (f'weight_str = {weight_str}')
+
+        weight = None
+        if weight_str:
+            weight = int(weight_str) # пока без try
+            if weight < 0 or weight > 899:
+                message = {'msg': 'вес не в диапазоне 1-899'}
+                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        # здесь уже weight или None или число в диапазоне
         athlete, created = AthleteInfo.objects.update_or_create(
          user_id_id=user_id,
          defaults={
