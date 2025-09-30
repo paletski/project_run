@@ -119,17 +119,17 @@ class AthleteInfoViewSet(APIView):
             message = {'message': 'пользователь не найден'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
 
-        goals = request.GET.get('goals') # может быть пусто
+        goals = request.GET.get('goals', '') # может быть пусто
         weight_str = request.GET.get('weight') # может быть пусто
         print (f'weight_str = {weight_str}')
 
-        weight = None
+        weight = 0
         if weight_str:
             weight = int(weight_str) # пока без try
             if weight < 0 or weight > 899:
                 message = {'msg': 'вес не в диапазоне 1-899'}
                 return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        # здесь уже weight или None или число в диапазоне
+        # здесь уже weight или 0 (иначе ИИ не пускает) или число в диапазоне
         athlete, created = AthleteInfo.objects.update_or_create(
          user_id_id=user_id,
          defaults={
