@@ -119,7 +119,7 @@ class AthleteInfoViewSet(APIView):
         if 'weight' in data:
             try:
                 weight = int(data['weight'])  # пока без try
-                if weight <= 0 or weight > 900:
+                if not (0 < weight < 900):
                     message = {'msg': 'вес не в диапазоне 1-900'}
                     return Response(message, status=status.HTTP_400_BAD_REQUEST)
             # проскочили проверку, в диапазоне и число (помним про try)
