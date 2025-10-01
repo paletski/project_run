@@ -117,12 +117,16 @@ class AthleteInfoViewSet(APIView):
             print('goals in data')
             athlete.goals = data['goals']
         if 'weight' in data:
-            weight = int(data['weight'])  # пока без try
-            if weight < 0 or weight > 899:
-                message = {'msg': 'вес не в диапазоне 1-899'}
-                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                weight = int(data['weight'])  # пока без try
+                if weight < 0 or weight > 899:
+                    message = {'msg': 'вес не в диапазоне 1-899'}
+                    return Response(message, status=status.HTTP_400_BAD_REQUEST)
             # проскочили проверку, в диапазоне и число (помним про try)
+            except ValueError:
+                message = {'msg': 'вес должен быть числом в диапазоне 1-899'}
+                return Response(message, status=status.HTTP_400_BAD_REQUEST)
             athlete.weight = weight
-        athlete.save()
-        serializer = AthleteInfoSerializer(athlete)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            athlete.save()
+            serializer = AthleteInfoSerializer(athlete)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
