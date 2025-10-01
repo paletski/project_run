@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from django.conf import settings
 
 from .models import Run, AthleteInfo
-from .serializers import RunSerializer, UserSerializer
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
@@ -92,6 +92,8 @@ class RunStopViewSet(APIView):
 
 
 class AthleteInfoViewSet(APIView):
+    queryset = AthleteInfo.objects.all()
+    serializer_class = AthleteInfoSerializer
     def get(self, request, user_id):
         #True создан, False найден
         if not User.objects.filter(id=user_id).exists():
@@ -100,18 +102,8 @@ class AthleteInfoViewSet(APIView):
         # юзер есть в User
         # значит достаем данные по нему из AthleteInfo или создаем запись в AthleteInfo
         athlete, created = AthleteInfo.objects.get_or_create(user_id_id=user_id)
-        res_data = {
-            'weight': athlete.weight,
-            'goals': athlete.goals,
-            'user_id': athlete.user_id_id,
-        }
-        if created:
-            #return Response(res_data, status=status.HTTP_201_CREATED) # создан
-            # не понимаю что надо по ТЗ, будем так же пихать в ответ 200
-            return Response(res_data, status=status.HTTP_200_OK)  # создан
-        else:
-            return Response(res_data, status=status.HTTP_200_OK) # найдено
-
+        serializer = AthleteInfoSerializer(athlete)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, user_id):
         # True создан,  False обновлен
@@ -119,26 +111,18 @@ class AthleteInfoViewSet(APIView):
             message = {'message': 'пользователь не найден'}
             return Response(message, status=status.HTTP_404_NOT_FOUND)
 
-        goals = request.GET.get('goals', '') # может быть пусто
-        weight_str = request.GET.get('weight') # может быть пусто
-        print (f'weight_str = {weight_str}')
-
-        weight = 0
-        if weight_str:
-            weight = int(weight_str) # пока без try
+        athlete, created = AthleteInfo.objects.update_or_create(user_id_id=user_id)
+        data = request.data
+        if 'goals' in data:
+            print('goals in data')
+            athlete.goals = data['goals']
+        if 'weight' in data:
+            weight = int(data['weight'])  # пока без try
             if weight < 0 or weight > 899:
                 message = {'msg': 'вес не в диапазоне 1-899'}
                 return Response(message, status=status.HTTP_400_BAD_REQUEST)
-        # здесь уже weight или 0 (иначе ИИ не пускает) или число в диапазоне
-        athlete, created = AthleteInfo.objects.update_or_create(
-         user_id_id=user_id,
-         defaults={
-            'weight': weight,
-            'goals': goals})
-        res_data = {
-            'weight': athlete.weight,
-            'goals': athlete.goals,
-            'user_id': athlete.user_id_id,
-        }
-        return Response(res_data, status=status.HTTP_201_CREATED)
-
+            # проскочили проверку, в диапазоне и число (помним про try)
+            athlete.weight = weight
+        athlete.save()
+        serializer = AthleteInfoSerializer(athlete)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

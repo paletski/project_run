@@ -34,3 +34,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_runs_finished(self, obj):
          return  obj.runs.filter(status='finished').count() # получить по
          # обратной связи количество завершенных забегов атлета
+
+
+class AthleteInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AthleteInfo
+        #fields = '__all__'
+        fields = ('weight', 'goals',  'user_id')
