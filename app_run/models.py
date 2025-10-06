@@ -23,3 +23,11 @@ class AthleteInfo(models.Model):
     weight = models.IntegerField(null=True)
     goals = models.TextField(null=True)
     user_id = models.OneToOneField(User, on_delete=models.CASCADE, related_name='athlete_info')
+
+class Challenge(models.Model):
+    full_name = models.TextField()
+    athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='challenges')
+
+    def __str__(self):
+        return (f"id = {self.id} full_name = {self.full_name} athlete ="
+                f" {self.athlete}")

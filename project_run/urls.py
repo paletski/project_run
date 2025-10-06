@@ -25,6 +25,7 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register('api/runs', views.RunViewSet)
 router.register('api/users', views.UserViewSet)
+#router.register('api/challenges', views.ChallengeViewSet)
 
 
 urlpatterns = [
@@ -34,4 +35,5 @@ urlpatterns = [
     path('api/runs/<int:run_id>/start/', views.RunStartViewSet.as_view()),
     path('api/runs/<int:run_id>/stop/', views.RunStopViewSet.as_view()),
     path('api/athlete_info/<int:user_id>/', views.AthleteInfoViewSet.as_view()),
+    path('api/challenges/', views.ChallengeViewSet.as_view()),
 ]

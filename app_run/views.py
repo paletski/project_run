@@ -3,8 +3,10 @@ from rest_framework import viewsets
 
 from django.conf import settings
 
-from .models import Run, AthleteInfo
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
+from .models import Run, AthleteInfo, Challenge
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, \
+    ChallengeSerializer
+from .serializers import ChallengeSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
 from rest_framework.views import APIView
@@ -84,6 +86,12 @@ class RunStopViewSet(APIView):
         if run.status == 'in_progress':
             run.status = 'finished'
             run.save()
+            # далее нужно подсчитать сколько забегов finished
+            cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
+            if cnt == 10:  # бажина! если 11 забегов тооо... но с равенством
+                # ТЗ выполняется
+                run_challenge = Challenge.objects.create(
+                    full_name='Сделай 10 Забегов!', athlete=run.athlete)
             data = {'message': f'POST запрос обработан 32'}
             return Response(data, status=status.HTTP_200_OK)
         else:
@@ -130,3 +138,15 @@ class AthleteInfoViewSet(APIView):
             athlete.save()
             serializer = AthleteInfoSerializer(athlete)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class ChallengeViewSet(APIView):
+    queryset = Challenge.objects.all()
+    print(queryset)
+    serializer_class = ChallengeSerializer
+    #def get(self, request, athlete = None):
+    def get(self, request):
+        athlete = request.query_params.get('athlete')
+        print(f'athlete = {athlete}')
+        challenges = Challenge.objects.filter(athlete=athlete) if athlete else Challenge.objects.all()
+        serializer = ChallengeSerializer(challenges,  many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
