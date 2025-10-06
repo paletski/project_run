@@ -87,8 +87,7 @@ class RunStopViewSet(APIView):
             run.status = 'finished'
             run.save()
             cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
-            if cnt == 10:  # бажина! если 11 забегов тооо... но с равенством
-                # ТЗ выполняется
+            if cnt == 10:  # даже если 11 забегов тос равенством ТЗ выполняется
                 run_challenge = Challenge.objects.create(
                     full_name='Сделай 10 Забегов!', athlete=run.athlete)
             data = {'message': f'POST запрос обработан 32'}
