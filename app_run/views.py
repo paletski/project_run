@@ -86,7 +86,6 @@ class RunStopViewSet(APIView):
         if run.status == 'in_progress':
             run.status = 'finished'
             run.save()
-            # далее нужно подсчитать сколько забегов finished
             cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
             if cnt == 10:  # бажина! если 11 забегов тооо... но с равенством
                 # ТЗ выполняется
