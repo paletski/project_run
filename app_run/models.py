@@ -31,3 +31,9 @@ class Challenge(models.Model):
     def __str__(self):
         return (f"id = {self.id} full_name = {self.full_name} athlete ="
                 f" {self.athlete}")
+
+
+class Position(models.Model):
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    run = models.ForeignKey(Run, on_delete=models.CASCADE, related_name='positions')

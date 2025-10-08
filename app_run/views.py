@@ -3,9 +3,9 @@ from rest_framework import viewsets
 
 from django.conf import settings
 
-from .models import Run, AthleteInfo, Challenge
+from .models import Run, AthleteInfo, Challenge, Position
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, \
-    ChallengeSerializer
+    ChallengeSerializer, PositionSerializer
 from .serializers import ChallengeSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
@@ -148,3 +148,22 @@ class ChallengeViewSet(APIView):
         challenges = Challenge.objects.filter(athlete=athlete) if athlete else Challenge.objects.all()
         serializer = ChallengeSerializer(challenges,  many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PositionViewSet(viewsets.ModelViewSet):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
+
+    def get_queryset(self):
+        if 'run' in self.request.query_params:
+            return self.queryset.filter(run_id=self.request.query_params['run'])
+        else:
+            return Position.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        if 'run' in request.data:
+            if Run.objects.filter(id=request.data['run'], status='in_progress').exists():
+                return super().create(request, *args, **kwargs)
+            else:
+                return Response({'message': 'run не найден'},
+                                status=status.HTTP_400_BAD_REQUEST)

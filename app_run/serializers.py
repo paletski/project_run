@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run, AthleteInfo, Challenge
+from .models import Run, AthleteInfo, Challenge, Position
 from django.contrib.auth.models import User
 
 
@@ -47,3 +47,31 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
         fields = ('athlete', 'full_name')
+
+
+class PositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Position
+        fields = ('latitude', 'longitude', 'run')
+    # изобретем велосипед
+    def validate_latitude(self, value):
+        # пока без try - делаем скелетик
+        fvalue = f"{value:.4f}"
+        fvalue = float(fvalue)
+        print(f'latitude = {fvalue}')
+        if fvalue < -90.0000 or fvalue > 90.0000:
+            # кинет 400 ошибку
+            raise serializers.ValidationError(
+                f'latitude должно быть в диапазоне от -90.0000 до 90.0000')
+        return fvalue
+    def validate_longitude(self, value):
+        # пока без try - делаем скелетик
+        fvalue = f"{value:.4f}"
+        fvalue = float(fvalue)
+        print(f'longitude = {fvalue}')
+        if fvalue < -180.0000 or fvalue > 180.0000:
+            # кинет 400 ошибку
+            raise serializers.ValidationError(
+                f'longitude должно быть в диапазоне от -180.0000 до 180.0000')
+        return fvalue
+
