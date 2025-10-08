@@ -58,7 +58,7 @@ class PositionSerializer(serializers.ModelSerializer):
         # пока без try - делаем скелетик
         fvalue = f"{value:.4f}"
         fvalue = float(fvalue)
-        print(f'latitude = {fvalue}')
+        #print(f'latitude = {fvalue}')
         if fvalue < -90.0000 or fvalue > 90.0000:
             # кинет 400 ошибку
             raise serializers.ValidationError(
@@ -68,7 +68,7 @@ class PositionSerializer(serializers.ModelSerializer):
         # пока без try - делаем скелетик
         fvalue = f"{value:.4f}"
         fvalue = float(fvalue)
-        print(f'longitude = {fvalue}')
+        #print(f'longitude = {fvalue}')
         if fvalue < -180.0000 or fvalue > 180.0000:
             # кинет 400 ошибку
             raise serializers.ValidationError(

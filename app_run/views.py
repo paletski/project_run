@@ -163,7 +163,11 @@ class PositionViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         if 'run' in request.data:
             if Run.objects.filter(id=request.data['run'], status='in_progress').exists():
-                return super().create(request, *args, **kwargs)
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                #super().create(request, *args, **kwargs)
+                self.perform_create(serializer)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({'message': 'run не найден'},
                                 status=status.HTTP_400_BAD_REQUEST)
