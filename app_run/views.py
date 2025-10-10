@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from geopy.distance import geodesic
 
 
 # Create your views here.
@@ -85,6 +86,20 @@ class RunStopViewSet(APIView):
         #print(f'view stop {run}')
         if run.status == 'in_progress':
             run.status = 'finished'
+            # сюда добавим вычисления расстояния забега
+            positions_list = Position.objects.filter(run=run).order_by('id')
+            # select-related ? хотя вроде зачем, мы же тянем все из позиций
+            probeg = 0
+            pos_cnt = positions_list.count()
+            for i in range(pos_cnt):
+                if i == 0:
+                    probeg = 0
+                else:
+                    pos_old = (positions_list[i-1].latitude, positions_list[i-1].longitude)
+                    pos_new = (positions_list[i].latitude, positions_list[i].longitude)
+                    probeg += geodesic(pos_old, pos_new).km
+
+            run.distance = probeg
             run.save()
             cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
             if cnt == 10:  # даже если 11 забегов тос равенством ТЗ выполняется
@@ -139,7 +154,7 @@ class AthleteInfoViewSet(APIView):
 
 class ChallengeViewSet(APIView):
     queryset = Challenge.objects.all()
-    print(queryset)
+    #print(queryset)
     serializer_class = ChallengeSerializer
     #def get(self, request, athlete = None):
     def get(self, request):

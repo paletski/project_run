@@ -14,6 +14,7 @@ class Run(models.Model):
     comment = models.TextField()
     athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='runs')
     status = models.CharField(choices=STATUS_CHOICES,default='init')
+    distance = models.FloatField(null=True)
 
     def __str__(self):
         return f"id = {self.id} created_at = {self.created_at} comment = {self.comment} "
@@ -37,3 +38,7 @@ class Position(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     run = models.ForeignKey(Run, on_delete=models.CASCADE, related_name='positions')
+
+    def __str__(self):
+        return (f"id = {self.id} latitude = {self.latitude} longitude = "
+                f"{self.longitude} run = {self.run_id}")
