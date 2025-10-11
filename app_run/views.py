@@ -17,7 +17,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from geopy.distance import geodesic
-
+from django.db.models import Sum
 
 # Create your views here.
 
@@ -101,10 +101,27 @@ class RunStopViewSet(APIView):
 
             run.distance = probeg
             run.save()
+            # челленджи
+            #
             cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
-            if cnt == 10:  # даже если 11 забегов тос равенством ТЗ выполняется
+            # 'Сделай 10 Забегов!'
+            if cnt == 10:  #даже если 11 забегов то с равенством ТЗ выполняется
                 run_challenge = Challenge.objects.create(
                     full_name='Сделай 10 Забегов!', athlete=run.athlete)
+
+
+            # "Пробеги 50 километров!"
+            distance_50 = Run.objects.filter(athlete=run.athlete,
+                                             status='finished'
+                                             ).aggregate(Sum('distance'))
+            #print(f'distance_50 = {distance_50}')
+            if distance_50.get('distance__sum') >= 50:
+                if not Challenge.objects.filter(athlete=run.athlete,
+                                                full_name='Пробеги 50 километров!').exists():
+                    Challenge.objects.create(
+                        full_name='Пробеги 50 километров!', athlete=run.athlete)
+
+
             data = {'message': f'POST запрос обработан 32'}
             return Response(data, status=status.HTTP_200_OK)
         else:
