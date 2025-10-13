@@ -3,9 +3,9 @@ from rest_framework import viewsets
 
 from django.conf import settings
 
-from .models import Run, AthleteInfo, Challenge, Position
+from .models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, \
-    ChallengeSerializer, PositionSerializer
+    ChallengeSerializer, PositionSerializer, CollectibleItemSerializer
 from .serializers import ChallengeSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
@@ -18,7 +18,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from geopy.distance import geodesic
 from django.db.models import Sum
-
+from openpyxl import load_workbook
+import copy
 # Create your views here.
 
 @api_view(['GET'])
@@ -111,6 +112,8 @@ class RunStopViewSet(APIView):
 
 
             # "Пробеги 50 километров!"
+            # TODO надо переделать, сначала проверяем есть ли выполненный
+            #  челлендж, если есть - идем мимо, нет - считаем в базе
             distance_50 = Run.objects.filter(athlete=run.athlete,
                                              status='finished'
                                              ).aggregate(Sum('distance'))
@@ -152,7 +155,7 @@ class AthleteInfoViewSet(APIView):
         athlete, created = AthleteInfo.objects.update_or_create(user_id_id=user_id)
         data = request.data
         if 'goals' in data:
-            print('goals in data')
+            #print('goals in data')
             athlete.goals = data['goals']
         if 'weight' in data:
             try:
@@ -176,7 +179,7 @@ class ChallengeViewSet(APIView):
     #def get(self, request, athlete = None):
     def get(self, request):
         athlete = request.query_params.get('athlete')
-        print(f'athlete = {athlete}')
+        #print(f'athlete = {athlete}')
         challenges = Challenge.objects.filter(athlete=athlete) if athlete else Challenge.objects.all()
         serializer = ChallengeSerializer(challenges,  many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -203,3 +206,52 @@ class PositionViewSet(viewsets.ModelViewSet):
             else:
                 return Response({'message': 'run не найден'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+
+class CollectibleItemViewSet(viewsets.ModelViewSet):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+
+
+
+class CollectibleItemFileLoad(APIView):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+    def post(self, request):
+        wr_book = load_workbook(request.FILES['file'])
+        wr_list = wr_book.active # берет первый лист - оно нам и надо
+        # упрощенная проверка, по первому полю, если пусто или нет, то считаем
+        # что строки кончились
+        str_cnt = 2
+        data_str = []
+        data_val = {}
+        err_str = []
+        while True:
+            name = wr_list.cell(row=str_cnt, column=1).value
+            uid = wr_list.cell(row=str_cnt, column=2).value
+            value = wr_list.cell(row=str_cnt, column=3).value
+            latitude = wr_list.cell(row=str_cnt, column=4).value
+            longitude = wr_list.cell(row=str_cnt, column=5).value
+            picture = wr_list.cell(row=str_cnt, column=6).value # url в экселе
+
+            if name is None or str(name).strip() == "":
+                break
+
+            data_str.append([name, uid, value, latitude, longitude, picture])
+            data_val = ({'name': name, 'uid': uid, 'value': value,
+                         'latitude': latitude, 'longitude': longitude,
+                        'picture': picture})
+
+            serializer = CollectibleItemSerializer(data=data_val)
+            if serializer.is_valid():
+                if not CollectibleItem.objects.filter(uid=uid).exists():
+                    serializer.save()
+            else:
+                err_str.append(copy.deepcopy(data_str))
+
+            str_cnt += 1
+            data_str.clear()
+        return Response(err_str, status=status.HTTP_200_OK)
+
+
+

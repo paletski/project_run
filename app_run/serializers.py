@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run, AthleteInfo, Challenge, Position
+from .models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 from django.contrib.auth.models import User
 
 
@@ -54,6 +54,35 @@ class PositionSerializer(serializers.ModelSerializer):
         model = Position
         fields = ('id', 'latitude', 'longitude', 'run')
     # изобретем велосипед
+    def validate_latitude(self, value):
+        # пока без try - делаем скелетик
+        fvalue = f"{value:.4f}"
+        fvalue = float(fvalue)
+        #print(f'latitude = {fvalue}')
+        if fvalue < -90.0000 or fvalue > 90.0000:
+            # кинет 400 ошибку
+            raise serializers.ValidationError(
+                f'latitude должно быть в диапазоне от -90.0000 до 90.0000')
+        return fvalue
+    def validate_longitude(self, value):
+        # пока без try - делаем скелетик
+        fvalue = f"{value:.4f}"
+        fvalue = float(fvalue)
+        #print(f'longitude = {fvalue}')
+        if fvalue < -180.0000 or fvalue > 180.0000:
+            # кинет 400 ошибку
+            raise serializers.ValidationError(
+                f'longitude должно быть в диапазоне от -180.0000 до 180.0000')
+        return fvalue
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = ('id', 'name', 'uid', 'latitude', 'longitude', 'picture', 'value')
+
+    value = serializers.IntegerField()
+    picture = serializers.URLField()
+
     def validate_latitude(self, value):
         # пока без try - делаем скелетик
         fvalue = f"{value:.4f}"
