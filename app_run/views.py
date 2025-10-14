@@ -227,28 +227,32 @@ class CollectibleItemFileLoad(APIView):
         data_val = {}
         err_str = []
         while True:
-            name = wr_list.cell(row=str_cnt, column=1).value
-            uid = wr_list.cell(row=str_cnt, column=2).value
-            value = wr_list.cell(row=str_cnt, column=3).value
-            latitude = wr_list.cell(row=str_cnt, column=4).value
-            longitude = wr_list.cell(row=str_cnt, column=5).value
-            picture = wr_list.cell(row=str_cnt, column=6).value # url в экселе
-
-            if name is None or str(name).strip() == "":
+            values = [
+                wr_list.cell(row=str_cnt, column=1).value, # name
+                wr_list.cell(row=str_cnt, column=2).value, # uid
+                wr_list.cell(row=str_cnt, column=3).value, # value
+                wr_list.cell(row=str_cnt, column=4).value, # latitude
+                wr_list.cell(row=str_cnt, column=5).value, # longitude
+                wr_list.cell(row=str_cnt, column=6).value  # picture -  url в
+            # экселе
+            ]
+            if values[0] is None or str(values[0]).strip() == "":
                 break
-
-            data_str.append([name, uid, value, latitude, longitude, picture])
-            data_val = ({'name': name, 'uid': uid, 'value': value,
-                         'latitude': latitude, 'longitude': longitude,
-                        'picture': picture})
+            data_str.extend(values)
+            # аналогично словарь:
+            data_val = ({'name':      values[0],
+                         'uid':       values[1],
+                         'value':     values[2],
+                         'latitude':  values[3],
+                         'longitude': values[4],
+                         'picture':   values[5]})
 
             serializer = CollectibleItemSerializer(data=data_val)
             if serializer.is_valid():
-                if not CollectibleItem.objects.filter(uid=uid).exists():
+                if not CollectibleItem.objects.filter(uid= values[0]).exists():
                     serializer.save()
             else:
                 err_str.append(copy.deepcopy(data_str))
-
             str_cnt += 1
             data_str.clear()
         return Response(err_str, status=status.HTTP_200_OK)
