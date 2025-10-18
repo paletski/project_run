@@ -50,6 +50,9 @@ class CollectibleItem(models.Model):
     longitude = models.FloatField()
     picture = models.URLField()
     value = models.IntegerField()
+    collitems = models.ManyToManyField(User,
+                                       related_name='collectibleitems',
+                                       blank=True)
 
     def __str__(self):
         return (f"id = {self.id} name = {self.name} uid = "

@@ -36,6 +36,21 @@ class UserSerializer(serializers.ModelSerializer):
          # обратной связи количество завершенных забегов атлета
 
 
+class UserSerializerCollItems(UserSerializer):
+    items = serializers.SerializerMethodField()
+    class Meta(UserSerializer.Meta):
+        model = User
+        fields = UserSerializer.Meta.fields + ('items',)
+
+    def get_items(self, obj):
+        users = User.objects.get(id=obj.id)
+        items = users.collectibleitems.all() # это QuerySet а не json
+
+        # сконвертим его в json!
+        serializer = CollectibleItemSerializer(items, many=True)
+        return serializer.data
+
+
 class AthleteInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AthleteInfo

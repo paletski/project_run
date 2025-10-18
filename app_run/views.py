@@ -5,7 +5,8 @@ from django.conf import settings
 
 from .models import Run, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, \
-    ChallengeSerializer, PositionSerializer, CollectibleItemSerializer
+    ChallengeSerializer, PositionSerializer, CollectibleItemSerializer, \
+    UserSerializerCollItems
 from .serializers import ChallengeSerializer
 from django.contrib.auth.models import User
 from rest_framework.filters import SearchFilter
@@ -53,6 +54,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['first_name', 'last_name',]
     ordering_fields = ['date_joined']
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserSerializer
+        elif self.action == 'retrieve':
+            return UserSerializerCollItems
+        return super().get_serializer_class()
+
     def get_queryset(self):
         qs = self.queryset
         runs_finished = self.request.query_params.get('runs_finished', None)
@@ -65,6 +73,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             else:
                 qs = qs.filter(is_superuser=False)
         return qs.filter(is_superuser=False)
+
 
 
 class RunStartViewSet(APIView):
@@ -82,6 +91,9 @@ class RunStartViewSet(APIView):
 
 
 class RunStopViewSet(APIView):
+    # получаем список всех загруженных коллектитемсов
+    collectible_items_list = CollectibleItem.objects.all()
+    print(collectible_items_list)
     def post(self, request, run_id):
         run = get_object_or_404(Run, id=run_id)
         #print(f'view stop {run}')
@@ -89,16 +101,32 @@ class RunStopViewSet(APIView):
             run.status = 'finished'
             # сюда добавим вычисления расстояния забега
             positions_list = Position.objects.filter(run=run).order_by('id')
+
+            # получить id юзера, делающего забег
+            user_id = run.athlete.id
+            print(f'user_id = {user_id}')
+
             # select-related ? хотя вроде зачем, мы же тянем все из позиций
             probeg = 0
             pos_cnt = positions_list.count()
             for i in range(pos_cnt):
                 if i == 0:
                     probeg = 0
+                    pos_new = (positions_list[0].latitude,
+                               positions_list[0].longitude)
+                    # нет ли рядом предметов CollectableItem?
+                    if self.get_dist(pos_new)[0]:
+                        coll_item = CollectibleItem.objects.get(id=self.get_dist(pos_new)[1])
+                        coll_item.collitems.add(user_id)
                 else:
                     pos_old = (positions_list[i-1].latitude, positions_list[i-1].longitude)
                     pos_new = (positions_list[i].latitude, positions_list[i].longitude)
                     probeg += geodesic(pos_old, pos_new).km
+
+                    # нет ли рядом предметов CollectableItem?
+                    if self.get_dist(pos_new)[0]:
+                        coll_item = CollectibleItem.objects.get(id=self.get_dist(pos_new)[1])
+                        coll_item.collitems.add(user_id)
 
             run.distance = probeg
             run.save()
@@ -130,6 +158,19 @@ class RunStopViewSet(APIView):
         else:
             data = {'message': f'POST запрос не обработан 22'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_dist(self, position):
+        col_item_cnt = self.collectible_items_list.count()
+        # проходим по всем предметам, считаем расстояние от
+        # текущей точки (position) до предмета, если менее 100 м добавить в
+        # таблицу
+        for j in range(col_item_cnt):
+            pos_item = (self.collectible_items_list[j].latitude,
+                        self.collectible_items_list[j].longitude)
+            dist = geodesic(pos_item, position).m
+            if dist < 100:
+                return  [True, self.collectible_items_list[j].id]
+        return [False, 0]
 
 
 class AthleteInfoViewSet(APIView):
@@ -200,7 +241,6 @@ class PositionViewSet(viewsets.ModelViewSet):
             if Run.objects.filter(id=request.data['run'], status='in_progress').exists():
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
-                #super().create(request, *args, **kwargs)
                 self.perform_create(serializer)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
