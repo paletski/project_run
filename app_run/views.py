@@ -18,7 +18,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from geopy.distance import geodesic
-from django.db.models import Sum
+from django.db.models import Sum, Min, Max
 from openpyxl import load_workbook
 import copy
 # Create your views here.
@@ -93,18 +93,27 @@ class RunStartViewSet(APIView):
 class RunStopViewSet(APIView):
     # получаем список всех загруженных коллектитемсов
     collectible_items_list = CollectibleItem.objects.all()
-    print(collectible_items_list)
+    #print(collectible_items_list)
     def post(self, request, run_id):
         run = get_object_or_404(Run, id=run_id)
         #print(f'view stop {run}')
         if run.status == 'in_progress':
             run.status = 'finished'
             # сюда добавим вычисления расстояния забега
-            positions_list = Position.objects.filter(run=run).order_by('id')
+            positions_list = Position.objects.filter(run=run).order_by('date_time')
+            #print(positions_list)
+
+            # вычислим длительность забега
+            min_time = Position.objects.filter(run=run).aggregate(Min('date_time'))
+            max_time = Position.objects.filter(run=run).aggregate(Max('date_time'))
+            min_dt = min_time['date_time__min']
+            max_dt = max_time['date_time__max']
+            # Как посчитать в базе? все равно мин/макс ищет?
+            run_time = int((max_dt - min_dt).total_seconds())
 
             # получить id юзера, делающего забег
             user_id = run.athlete.id
-            print(f'user_id = {user_id}')
+            #print(f'user_id = {user_id}')
 
             # select-related ? хотя вроде зачем, мы же тянем все из позиций
             probeg = 0
@@ -129,6 +138,7 @@ class RunStopViewSet(APIView):
                         coll_item.collitems.add(user_id)
 
             run.distance = probeg
+            run.run_time_seconds = run_time
             run.save()
             # челленджи
             #

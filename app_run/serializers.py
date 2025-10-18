@@ -15,6 +15,7 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = '__all__'
 
+    run_time_seconds = serializers.IntegerField()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,6 +44,7 @@ class UserSerializerCollItems(UserSerializer):
         fields = UserSerializer.Meta.fields + ('items',)
 
     def get_items(self, obj):
+        # проверить на n+1 !!!!! см видео коммент 18.4
         users = User.objects.get(id=obj.id)
         items = users.collectibleitems.all() # это QuerySet а не json
 
@@ -67,7 +69,9 @@ class ChallengeSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
-        fields = ('id', 'latitude', 'longitude', 'run')
+        fields = ('id', 'latitude', 'longitude', 'run', 'date_time',)
+    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
+
     # изобретем велосипед
     def validate_latitude(self, value):
         # пока без try - делаем скелетик
