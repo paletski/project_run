@@ -15,7 +15,7 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = '__all__'
 
-    run_time_seconds = serializers.IntegerField(allow_null=True)
+    run_time_seconds = serializers.IntegerField(allow_null=True, default=0)
 
 
 class UserSerializer(serializers.ModelSerializer):
