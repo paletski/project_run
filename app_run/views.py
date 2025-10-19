@@ -140,6 +140,7 @@ class RunStopViewSet(APIView):
             run.distance = probeg
             run.run_time_seconds = run_time
             run.save()
+
             # челленджи
             #
             cnt = Run.objects.filter(athlete=run.athlete, status='finished').count()
