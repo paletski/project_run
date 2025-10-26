@@ -18,7 +18,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from geopy.distance import geodesic
-from django.db.models import Sum, Min, Max
+from django.db.models import Sum, Min, Max, Count, Q
 from openpyxl import load_workbook
 import copy
 # Create your views here.
@@ -47,7 +47,11 @@ class UserPagination(PageNumberPagination):
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    #queryset = User.objects.all()
+    queryset = User.objects.annotate(runs_finished=Count('runs', filter=Q(
+        runs__status='finished'))).distinct()
+    #print(f'queryset = {queryset}')
+
     serializer_class = UserSerializer
     pagination_class = RunPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -63,7 +67,21 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = self.queryset
-        runs_finished = self.request.query_params.get('runs_finished', None)
+        #print(f'queryset_inn = {qs}')
+        #qs = self.queryset.annotate(runs_finished = Count('runs'), filter =
+        # Q(runs__status='finished')  &  Q(runs__athlete_id = 3 )  )
+
+        #print(f'qs = {qs}')
+        #users = User.objects.annotate(runs_finished = Count('runs'), filter
+        #= Q(runs__status='finished'))
+        #us1 = qs.annotate(runs_finished = Count('runs'), filter= Q(
+        #    runs__status='finished'))
+        #print(f'us1 = {us1}')
+        #return User.objects.annotate(runs_finished = Count('runs'), filter
+        # =   Q(runs__status='finished'))
+
+        #runs_finished = self.request.query_params.get('runs_finished', None)
+
         type = self.request.query_params.get('type', None)
         if type:
             if type == 'coach':

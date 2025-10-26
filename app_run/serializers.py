@@ -20,11 +20,14 @@ class RunSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
-    runs_finished = serializers.SerializerMethodField()
+    #runs_finished = serializers.SerializerMethodField()
+    #runs_finished = serializers.ReadOnlyField(source='runs_finished')
+    runs_finished = serializers.ReadOnlyField()
     class Meta:
         model = User
         fields = ('id', 'date_joined', 'username', 'last_name',
-                  'first_name', 'type', 'runs_finished',)
+         'first_name', 'type', 'runs_finished',)
+
 
     def get_type(self, obj):
         if obj.is_staff:
@@ -32,8 +35,8 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             return 'athlete'
 
-    def get_runs_finished(self, obj):
-         return  obj.runs.filter(status='finished').count() # получить по
+    #def get_runs_finished(self, obj):
+         #return  obj.runs.filter(status='finished').count() # получить по
          # обратной связи количество завершенных забегов атлета
 
 
@@ -42,6 +45,9 @@ class UserSerializerCollItems(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = User
         fields = UserSerializer.Meta.fields + ('items',)
+        #fields = UserSerializer.Meta.fields.append('items')
+        #fields = '__all__'
+
 
     def get_items(self, obj):
         # проверить на n+1 !!!!! см видео коммент 18.4
