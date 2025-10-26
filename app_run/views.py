@@ -68,20 +68,6 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = self.queryset
         #print(f'queryset_inn = {qs}')
-        #qs = self.queryset.annotate(runs_finished = Count('runs'), filter =
-        # Q(runs__status='finished')  &  Q(runs__athlete_id = 3 )  )
-
-        #print(f'qs = {qs}')
-        #users = User.objects.annotate(runs_finished = Count('runs'), filter
-        #= Q(runs__status='finished'))
-        #us1 = qs.annotate(runs_finished = Count('runs'), filter= Q(
-        #    runs__status='finished'))
-        #print(f'us1 = {us1}')
-        #return User.objects.annotate(runs_finished = Count('runs'), filter
-        # =   Q(runs__status='finished'))
-
-        #runs_finished = self.request.query_params.get('runs_finished', None)
-
         type = self.request.query_params.get('type', None)
         if type:
             if type == 'coach':
@@ -127,8 +113,10 @@ class RunStopViewSet(APIView):
             min_dt = min_time['date_time__min']
             max_dt = max_time['date_time__max']
             # Как посчитать в базе? все равно мин/макс ищет?
-            run_time = int((max_dt - min_dt).total_seconds())
-
+            if not max_dt or not min_dt:
+                run_time = None
+            else:
+                run_time = int((max_dt - min_dt).total_seconds())
             # получить id юзера, делающего забег
             user_id = run.athlete.id
             #print(f'user_id = {user_id}')

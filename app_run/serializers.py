@@ -21,7 +21,6 @@ class RunSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
     #runs_finished = serializers.SerializerMethodField()
-    #runs_finished = serializers.ReadOnlyField(source='runs_finished')
     runs_finished = serializers.ReadOnlyField()
     class Meta:
         model = User
@@ -45,8 +44,6 @@ class UserSerializerCollItems(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = User
         fields = UserSerializer.Meta.fields + ('items',)
-        #fields = UserSerializer.Meta.fields.append('items')
-        #fields = '__all__'
 
 
     def get_items(self, obj):
