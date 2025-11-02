@@ -72,7 +72,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Position
-        fields = ('id', 'latitude', 'longitude', 'run', 'date_time',)
+        fields = ('id', 'latitude', 'longitude', 'run', 'date_time',
+                  'distance', 'speed')
     date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
 
     # изобретем велосипед

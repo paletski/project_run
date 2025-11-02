@@ -1,3 +1,5 @@
+# import pprint
+
 from rest_framework.decorators import api_view
 from rest_framework import viewsets
 
@@ -21,6 +23,7 @@ from geopy.distance import geodesic
 from django.db.models import Sum, Min, Max, Count, Q
 from openpyxl import load_workbook
 import copy
+from datetime import datetime, timezone
 # Create your views here.
 
 @api_view(['GET'])
@@ -122,11 +125,15 @@ class RunStopViewSet(APIView):
             #print(f'user_id = {user_id}')
 
             # select-related ? хотя вроде зачем, мы же тянем все из позиций
+            # посчитаем пробег, заодно посмотрим наличие коллекционных
+            # предметов
             probeg = 0
+            speed_summ = 0
             pos_cnt = positions_list.count()
             for i in range(pos_cnt):
                 if i == 0:
                     probeg = 0
+                    speed_summ = 0
                     pos_new = (positions_list[0].latitude,
                                positions_list[0].longitude)
                     # нет ли рядом предметов CollectableItem?
@@ -137,12 +144,14 @@ class RunStopViewSet(APIView):
                     pos_old = (positions_list[i-1].latitude, positions_list[i-1].longitude)
                     pos_new = (positions_list[i].latitude, positions_list[i].longitude)
                     probeg += geodesic(pos_old, pos_new).km
-
+                    speed_summ = speed_summ + positions_list[i-1].speed
                     # нет ли рядом предметов CollectableItem?
                     if self.get_dist(pos_new)[0]:
                         coll_item = CollectibleItem.objects.get(id=self.get_dist(pos_new)[1])
                         coll_item.collitems.add(user_id)
 
+            speed_avg = round(speed_summ / (pos_cnt - 1), 2)
+            run.speed =  speed_avg  #f'{speed_avg:.2f}'
             run.distance = probeg
             run.run_time_seconds = run_time
             run.save()
@@ -253,13 +262,45 @@ class PositionViewSet(viewsets.ModelViewSet):
         else:
             return Position.objects.all()
 
+    # POST запрос
     def create(self, request, *args, **kwargs):
         if 'run' in request.data:
             if Run.objects.filter(id=request.data['run'], status='in_progress').exists():
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
-                self.perform_create(serializer)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                # посчитать distance и speed
+                position_old = Position.objects.filter(run=request.data['run']).latest('date_time')
+                pos_old = (position_old.latitude, position_old.longitude)
+                date_time_old = position_old.date_time
+                pos_new = (request.data['latitude'],request.data['longitude'] )
+
+                distance_old = position_old.distance #request.data['distance']
+
+                distance_new = geodesic(pos_old, pos_new).km
+                date_time_new = datetime.fromisoformat(request.data['date_time'])
+                date_time_new = date_time_new.replace(tzinfo=timezone.utc)
+                # в секундах, внимание на ТЗ!
+                delta_time = int((date_time_new - date_time_old).total_seconds())
+                # в м/с, смотри ТЗ
+                #speed = distance_new * 1000 / delta_time
+                speed = round(distance_new * 1000 / delta_time, 2)
+                #print(f'speed {speed}')
+
+                #distance = distance_new  + float(distance_old)
+                distance = round(distance_new + float(distance_old), 2)
+                #print(f'distance_new {distance_new}')
+                #print(f'distance_old {distance_old}')
+                #print(f'distance {distance}')
+
+                # пишем в базу - все вычисления проведены, данные готовы
+                if serializer.is_valid():
+                    #print('in is-valid')
+                    validated_data = serializer.validated_data
+                    validated_data['distance'] = distance
+                    validated_data['speed'] = speed
+                    serializer.save()
+                    self.perform_create(serializer)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response({'message': 'run не найден'},
                                 status=status.HTTP_400_BAD_REQUEST)
