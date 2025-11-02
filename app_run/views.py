@@ -284,10 +284,15 @@ class PositionViewSet(viewsets.ModelViewSet):
                     delta_time = int((date_time_new - date_time_old).total_seconds())
                     # в м/с, смотри ТЗ
                     #speed = distance_new * 1000 / delta_time
-                    distance_new = round(distance_new, 2)
-                    speed = round(distance_new * 1000 / delta_time, 2)
+                    #distance_new = round(distance_new, 2) # gpt-5 говорит
+                    # что не нужно округлять
+                    #speed = round(distance_new * 1000 / delta_time, 2)
+                    speed = distance_new * 1000 / delta_time # gpt-5 говорит
+                    # что округлять здесь не надо
                     #distance = distance_new  + float(distance_old)
-                    distance = round(distance_new + float(distance_old), 2)
+                    #distance = round(distance_new + float(distance_old), 2)
+                    distance = distance_new + float(distance_old) # gpt-5
+                    # говорит что не надо округлять здесь
                 except ObjectDoesNotExist:
                     #print ('это первая позиция в ране')
                     distance = 0
