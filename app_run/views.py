@@ -1,5 +1,5 @@
 # import pprint
-
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view
 from rest_framework import viewsets
 
@@ -269,28 +269,26 @@ class PositionViewSet(viewsets.ModelViewSet):
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
                 # посчитать distance и speed
-                position_old = Position.objects.filter(run=request.data['run']).latest('date_time')
-                pos_old = (position_old.latitude, position_old.longitude)
-                date_time_old = position_old.date_time
-                pos_new = (request.data['latitude'],request.data['longitude'] )
-
-                distance_old = position_old.distance #request.data['distance']
-
-                distance_new = geodesic(pos_old, pos_new).km
-                date_time_new = datetime.fromisoformat(request.data['date_time'])
-                date_time_new = date_time_new.replace(tzinfo=timezone.utc)
-                # в секундах, внимание на ТЗ!
-                delta_time = int((date_time_new - date_time_old).total_seconds())
-                # в м/с, смотри ТЗ
-                #speed = distance_new * 1000 / delta_time
-                speed = round(distance_new * 1000 / delta_time, 2)
-                #print(f'speed {speed}')
-
-                #distance = distance_new  + float(distance_old)
-                distance = round(distance_new + float(distance_old), 2)
-                #print(f'distance_new {distance_new}')
-                #print(f'distance_old {distance_old}')
-                #print(f'distance {distance}')
+                try:
+                    position_old = Position.objects.filter(run=request.data['run']).latest('date_time')
+                    pos_old = (position_old.latitude, position_old.longitude)
+                    date_time_old = position_old.date_time
+                    pos_new = (request.data['latitude'],request.data['longitude'] )
+                    distance_old = position_old.distance #request.data['distance']
+                    distance_new = geodesic(pos_old, pos_new).km
+                    date_time_new = datetime.fromisoformat(request.data['date_time'])
+                    date_time_new = date_time_new.replace(tzinfo=timezone.utc)
+                    # в секундах, внимание на ТЗ!
+                    delta_time = int((date_time_new - date_time_old).total_seconds())
+                    # в м/с, смотри ТЗ
+                    #speed = distance_new * 1000 / delta_time
+                    speed = round(distance_new * 1000 / delta_time, 2)
+                    #distance = distance_new  + float(distance_old)
+                    distance = round(distance_new + float(distance_old), 2)
+                except ObjectDoesNotExist:
+                    #print ('это первая позиция в ране')
+                    distance = 0
+                    speed = 0
 
                 # пишем в базу - все вычисления проведены, данные готовы
                 if serializer.is_valid():
