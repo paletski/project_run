@@ -149,6 +149,7 @@ class RunStopViewSet(APIView):
                         coll_item = CollectibleItem.objects.get(id=self.get_dist(pos_new)[1])
                         coll_item.collitems.add(user_id)
 
+            # среднее арифм. скорость - проверка gpt-4
             speed_avg = round(speed_summ / (pos_cnt - 1), 2)
             #speed_avg = round(speed_summ / pos_cnt, 2)
             run.speed =  speed_avg  #f'{speed_avg:.2f}'
