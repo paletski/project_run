@@ -144,7 +144,7 @@ class RunStopViewSet(APIView):
                     pos_old = (positions_list[i-1].latitude, positions_list[i-1].longitude)
                     pos_new = (positions_list[i].latitude, positions_list[i].longitude)
                     probeg += geodesic(pos_old, pos_new).km
-                    speed_summ = speed_summ + positions_list[1].speed
+                    speed_summ = speed_summ + positions_list[i].speed
                     # нет ли рядом предметов CollectableItem?
                     if self.get_dist(pos_new)[0]:
                         coll_item = CollectibleItem.objects.get(id=self.get_dist(pos_new)[1])
@@ -283,6 +283,7 @@ class PositionViewSet(viewsets.ModelViewSet):
                     delta_time = int((date_time_new - date_time_old).total_seconds())
                     # в м/с, смотри ТЗ
                     #speed = distance_new * 1000 / delta_time
+                    distance_new = round(distance_new, 2)
                     speed = round(distance_new * 1000 / delta_time, 2)
                     #distance = distance_new  + float(distance_old)
                     distance = round(distance_new + float(distance_old), 2)
