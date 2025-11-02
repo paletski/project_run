@@ -150,8 +150,8 @@ class RunStopViewSet(APIView):
                         coll_item.collitems.add(user_id)
 
             # среднее арифм. скорость - проверка gpt-codex
-            #speed_avg = round(speed_summ / (pos_cnt - 1), 2)
-            speed_avg = round(((probeg * 1000) / run_time), 2)
+            speed_avg = round(speed_summ / (pos_cnt - 1), 2)
+            #speed_avg = round(((probeg * 1000) / run_time), 2)
             #speed_avg = round(speed_summ / pos_cnt, 2)
             run.speed =  speed_avg  #f'{speed_avg:.2f}'
             run.distance = probeg
