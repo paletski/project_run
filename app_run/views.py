@@ -123,7 +123,6 @@ class RunStopViewSet(APIView):
             # получить id юзера, делающего забег
             user_id = run.athlete.id
             #print(f'user_id = {user_id}')
-
             # select-related ? хотя вроде зачем, мы же тянем все из позиций
             # посчитаем пробег, заодно посмотрим наличие коллекционных
             # предметов
