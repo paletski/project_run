@@ -151,15 +151,16 @@ class RunStopViewSet(APIView):
 
             # среднее арифм. скорость - проверка gpt-codex
             #speed_avg = round(speed_summ / (pos_cnt - 1), 2)
+            speed_avg = round(speed_summ / pos_cnt , 2)
 
             # с точки зрения физики, надо общее расстояние / общее время
             probeg = round(probeg, 2) #km
-            print(f'probeg = {probeg}')
+            #print(f'probeg = {probeg}')
             #speed_avg = round(((probeg * 1000) / run_time), 2)
-            speed_avg = (probeg * 1000) / run_time
-            print(f'speed_avg = {speed_avg}')
-            speed_avg = round(speed_avg, 2)
-            print(f'speed_avg = {speed_avg}')
+            #speed_avg = (probeg * 1000) / run_time
+            #print(f'speed_avg = {speed_avg}')
+            #speed_avg = round(speed_avg, 2)
+            #print(f'speed_avg = {speed_avg}')
 
             #speed_avg = round(speed_summ / pos_cnt, 2)
             run.speed =  speed_avg  #f'{speed_avg:.2f}'
