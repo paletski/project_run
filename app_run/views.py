@@ -150,19 +150,10 @@ class RunStopViewSet(APIView):
                         coll_item.collitems.add(user_id)
 
             # среднее арифм. скорость - проверка gpt-codex
-            #speed_avg = round(speed_summ / (pos_cnt - 1), 2)
             speed_avg = round(speed_summ / pos_cnt , 2)
 
             # с точки зрения физики, надо общее расстояние / общее время
             probeg = round(probeg, 2) #km
-            #print(f'probeg = {probeg}')
-            #speed_avg = round(((probeg * 1000) / run_time), 2)
-            #speed_avg = (probeg * 1000) / run_time
-            #print(f'speed_avg = {speed_avg}')
-            #speed_avg = round(speed_avg, 2)
-            #print(f'speed_avg = {speed_avg}')
-
-            #speed_avg = round(speed_summ / pos_cnt, 2)
             run.speed =  speed_avg  #f'{speed_avg:.2f}'
             run.distance = probeg
             run.run_time_seconds = run_time
@@ -178,8 +169,6 @@ class RunStopViewSet(APIView):
 
 
             # "Пробеги 50 километров!"
-            # TODO надо переделать, сначала проверяем есть ли выполненный
-            #  челлендж, если есть - идем мимо, нет - считаем в базе
             distance_50 = Run.objects.filter(athlete=run.athlete,
                                              status='finished'
                                              ).aggregate(Sum('distance'))
@@ -190,7 +179,14 @@ class RunStopViewSet(APIView):
                     Challenge.objects.create(
                         full_name='Пробеги 50 километров!', athlete=run.athlete)
 
+            # "2 километра за 10 минут!"
+            if probeg >= 2 and run_time <= 600:
+                print(f'probeg = {probeg}')
+                print(f'run_time = {run_time}')
+                Challenge.objects.create(full_name='2 километра за 10 минут!', athlete=run.athlete)
 
+
+            # завершаем обработку
             data = {'message': f'POST запрос обработан 32'}
             return Response(data, status=status.HTTP_200_OK)
         else:
